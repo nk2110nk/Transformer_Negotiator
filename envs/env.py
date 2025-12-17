@@ -60,7 +60,8 @@ class NaiveEnv(gym.Env):
         if self.session is not None:
             self.session.reset()
             self.session_start = False
-        self.session.__init__(issues=self.issues, n_steps=80, avoid_ultimatum=False)
+        #self.session.__init__(issues=self.issues, n_steps=80, avoid_ultimatum=False)
+        self.session = MySAOMechanism(issues=self.issues, n_steps=80, avoid_ultimatum=False)
         self.my_agent = RLNegotiator()
         opponent = self.get_opponent(add_noise=True)
 
