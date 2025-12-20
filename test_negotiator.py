@@ -13,6 +13,8 @@ from sao.my_negotiators import *
 from envs.rl_negotiator import TestRLNegotiator
 from matplotlib import pyplot as plt
 
+import sys
+
 ISSUE_NAMES = [
     'Laptop',
     'ItexvsCypress',
@@ -41,17 +43,21 @@ def a(x):
     return 'T' if x else 'F'
 
 
-def run_session_trained(path, save_path, opponent, issue, domain, util1, util2, det, noise, decoder_only, scale, decoder_num, is_first_turn=False):
+def run_session_trained(path, save_path, opponent, issue, domain, util1, util2, util3, det, noise, decoder_only, scale, decoder_num, is_first_turn=False): # 変更箇所
     session = MySAOMechanism(issues=domain, n_steps=80, avoid_ultimatum=False)
     my_agent = TestRLNegotiator(domain, issue, opponent, path, deterministic=det, accept_offer=False, decoder_only=decoder_only, scale=scale, decoder_num=decoder_num)
-    opponent = get_opponent(opponent, add_noise=noise)
+    opponent0 = get_opponent(opponent[0], add_noise=noise) # 変更箇所
+    opponent1 = get_opponent(opponent[1], add_noise=noise) # 変更箇所
 
+# この部分の対戦相手の順番を調整
     if is_first_turn:
         session.add(my_agent, ufun=util1)
-        session.add(opponent, ufun=util2)
+        session.add(opponent0, ufun=util2) # 変更箇所
+        session.add(opponent1, ufun=util3) # 変更箇所
     else:
-        session.add(opponent, ufun=util2)
+        session.add(opponent0, ufun=util2) # 変更箇所
         session.add(my_agent, ufun=util1)
+        session.add(opponent1, ufun=util3) # 変更箇所
 
     values = []
     for _ in session:
@@ -64,15 +70,18 @@ def run_session_trained(path, save_path, opponent, issue, domain, util1, util2, 
 
     if result['agreement'] is not None:
         agreement_offer = tuple(v for k, v in result['agreement'].items())
-        my_util, opp_util = util1(agreement_offer), util2(agreement_offer)
+        # この部分は先行想定ごとに処理を変更しなければならない
+        my_util, opp_util1, opp_util2 = util1(agreement_offer), util2(agreement_offer), util3(agreement_offer) # 変更箇所
     else:
-        my_util, opp_util = 0, 0
+        my_util, opp_util1, opp_util2 = 0, 0, 0 # 変更箇所
 
+    # 変更箇所
     results = [
         my_util,
-        opp_util,
-        my_util + opp_util,
-        my_util * opp_util,
+        opp_util1,
+        opp_util2,
+        my_util + opp_util1 + opp_util2,
+        my_util * opp_util1 * opp_util2,
         result['agreement'],
         result['step'], 
         result['last_negotiator'], 
@@ -99,13 +108,16 @@ def run_session_trained(path, save_path, opponent, issue, domain, util1, util2, 
             writer.writerows(values)
 
     session.reset()
-    del my_agent, session, opponent
+    del my_agent, session, opponent1, opponent2 # 変更箇所
     gc.collect()
+    
+    # 変更箇所
     return [
         my_util,
-        opp_util,
-        my_util + opp_util,
-        my_util * opp_util,
+        opp_util1,
+        opp_util2,
+        my_util + opp_util1 + opp_util2,
+        my_util * opp_util1 * opp_util2,
         result['agreement'],
         result['step'], 
         result['last_negotiator'], 
@@ -114,17 +126,19 @@ def run_session_trained(path, save_path, opponent, issue, domain, util1, util2, 
 
 def test_trained(config):
     issue, agent, det, noise, save_path, decoder_only, scale, decoder_num, is_first = config
-    results = [['my_util', 'opp_util', 'social', 'nash', 'agreement', 'step', 'last_neg', 'value']]
+    results = [['my_util', 'opp_util1', 'opp_util2', 'social', 'nash', 'agreement', 'step', 'last_neg', 'value']] # 変更箇所
     scenario = load_genius_domain_from_folder('domain/' + issue)
     domain = scenario.issues
     util1 = scenario.ufuns[0].scale_max(1.0)
     util2 = scenario.ufuns[1].scale_max(1.0)
+    util3 = scenario.ufuns[2].scale_max(1.0) # 変更箇所
+    
     for _ in tqdm(range(1 if PLOT else 100)):
-        result = run_session_trained(f'{LOAD_PATH}/checkpoint.pt', save_path, agent, issue, domain, util1, util2, det, noise, decoder_only, scale, decoder_num, is_first)
+        result = run_session_trained(f'{LOAD_PATH}/checkpoint.pt', save_path, agent, issue, domain, util1, util2, util3, det, noise, decoder_only, scale, decoder_num, is_first) # 変更箇所
         results.append(result)
 
     if not PLOT:
-        with open(f'{save_path}{issue}-{agent}-d{a(det)}-n{a(noise)}.tsv', 'w') as f:
+        with open(f'{save_path}{issue}-{agent[0]}-{agent[1]}-d{a(det)}-n{a(noise)}.tsv', 'w') as f: # 変更箇所
             writer = csv.writer(f, delimiter='\t')
             writer.writerows(results)
             print(results)
@@ -171,6 +185,7 @@ def main_trained():
     args = parser.parse_args()
     print(args)
 
+
     agents = args.agents
     issues = args.issues
     model_path = args.model
@@ -179,6 +194,7 @@ def main_trained():
     plot = args.plot
     is_first = args.is_first
     decoder_num = args.decoder_num
+    
 
     global LOAD_PATH
     LOAD_PATH = model_path
@@ -191,6 +207,23 @@ def main_trained():
     if isinstance(agents, str):
         agents = [agents]
 
+    agents_sum = len(agents) # 変更箇所
+    agent = [None, None] # 変更箇所
+
+# 変更箇所
+    for i in range(agents_sum):
+        agent[0] = agents[i]
+        for j in range(i, agents_sum):
+            agent[1] = agents[j]
+            for issue in issues:
+                for det, noise in product([False], [False]):
+                    save_path = LOAD_PATH + ('/img' if PLOT else '/csv') + f'/{agent[0]}-{agent[1]}/' + f'/{issue}/' + f'/det={det}_noise={noise}/'
+                    if not os.path.isdir(save_path):
+                        os.makedirs(save_path)
+
+                    test_trained((issue, agent, det, noise, save_path, decoder_only, scale, decoder_num, is_first)) 
+    sys.exit()
+"""
     for agent in agents:
         for issue in issues:
             for det, noise in product([False], [False]):
@@ -199,7 +232,16 @@ def main_trained():
                     os.makedirs(save_path)
 
                 test_trained((issue, agent, det, noise, save_path, decoder_only, scale, decoder_num, is_first))
+"""
 
 
 if __name__ == '__main__':
     main_trained()
+
+
+
+
+
+
+#やるべきタスク
+#・先行想定の処理
