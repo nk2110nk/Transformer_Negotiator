@@ -222,7 +222,7 @@ def main_trained():
                         os.makedirs(save_path)
 
                     test_trained((issue, agent, det, noise, save_path, decoder_only, scale, decoder_num, is_first)) 
-    sys.exit()
+# --- IGNORE ---
 """
     for agent in agents:
         for issue in issues:
