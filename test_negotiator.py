@@ -108,7 +108,7 @@ def run_session_trained(path, save_path, opponent, issue, domain, util1, util2, 
             writer.writerows(values)
 
     session.reset()
-    del my_agent, session, opponent1, opponent2 # 変更箇所
+    del my_agent, session, opponent0, opponent1 # 変更箇所
     gc.collect()
     
     # 変更箇所
