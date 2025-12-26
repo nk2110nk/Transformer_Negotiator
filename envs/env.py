@@ -196,6 +196,34 @@ class AOPEnv(NaiveEnv): # ここのクラスは学習時に使用
             if self.state['timedout'] or self.state['broken']:
                 return self.observation, self.get_reward(), True, False, {"state":[]}
         return self.observation, self.get_reward(), False, False, {"state":[]}
+    
+    """
+    参考コード（AOPEnv）
+        def step(self, action: int):
+        self.action = self.all_bids[action]
+        self.my_agent.set_next_bid(self.action)
+        
+        # 最初にstepを一回進めておく
+        self.state = self.session.step().__dict__
+        # 状態を更新
+        self.observation = self.observer(self.state,self.opponent)
+        if self.state['agreement'] is not None:  # 合意していたら
+            return self.observation, self.get_reward(), True, {}
+        if self.state['timedout'] or self.state['broken']:
+            return self.observation, self.get_reward(), True, {}
+        
+        # もし次の提案者が自分だった場合,もう一度stepを一回進める
+        while self.session._current_proposer.name == 'RLAgent':
+            self.state = self.session.step().__dict__
+            # 状態を更新
+            self.observation = self.observer(self.state,self.opponent)
+            if self.state['agreement'] is not None:  # 合意していたら
+                return self.observation, self.get_reward(), True, {}
+            if self.state['timedout'] or self.state['broken']:
+                return self.observation, self.get_reward(), True, {}
+        return self.observation, self.get_reward(), False, {}
+ 
+    """
 
 
 
