@@ -20,6 +20,10 @@ from envs.observer import EmbeddedObserveHistory
 from envs.dummy_vec_env import DummyVecEnv
 from policy import Transformer_Policy, RolloutBuffer
 
+ # 変更箇所
+import random
+import itertools
+
 ENV_NAME = 'AOPEnv-{}-v0'
 
 def register_neg_env(issue, observer, scale):
@@ -102,7 +106,7 @@ class PPO():
     def __init__(
         self,
         issue: Optional[Union[str, list[str]]] = None,
-        agents: Optional[Union[str, list[str]]] = 'Linear',
+        agents: Optional[Union[str, list[str]]] = ['Boulware', 'Boulware'], # 変更箇所
         n_envs: int = 4,
         learning_rate: float = 3e-4,
         n_rollout_steps: int = 2048,
@@ -199,7 +203,7 @@ class PPO():
         self, 
         rollout_buffer: RolloutBuffer,
         n_rollout_steps: int,
-        agent_id: int = None, 
+        agent_id: list[int], # 変更箇所 #この部分の型変更にうまく対応できるようにする
     ):
         self.model.eval()
         n_steps = 0
@@ -290,23 +294,31 @@ class PPO():
         idxes_i = np.array([_ for _ in range(len(self.issue))]*n_iteration)
         np.random.shuffle(idxes_i)
         idxes_a = np.array([_ for _ in range(len(self.agents))]*n_iteration)
+        idxes_b = np.array([_ for _ in range(len(self.agents))]*n_iteration) # 変更箇所 
         np.random.shuffle(idxes_a)
+        np.random.shuffle(idxes_b) # 変更箇所
         with tqdm(total=total_timesteps) as pbar:
             while self.n_timesteps< total_timesteps:
                 # 環境の更新
                 if self.stop_training:
                     return self
+
+                # ランダム選択方式
                 if self.random_train:
-                    agent_id = idxes_a[iteration]
+                    agent_id = [idxes_a[iteration], idxes_b[iteration]] # 変更箇所
                     self.env = self.env_list[idxes_i[iteration]]
                     self.rollout_buffer = self.rollout_buffer_list[idxes_i[iteration]]
-                    self.env.set_options({"opponent":self.agents[agent_id]})
+                    self.env.set_options({"opponent": [self.agents[agent_id[0]], self.agents[agent_id[1]]]}) # 変更箇所
                     self._last_obs = self.env.reset()
+                    
+                # 総当たり方式
                 else:
-                    agent_id = iteration%len(self.agents)
+                    pairs = list(itertools.combinations_with_replacement(range(len(self.agents)), 2)) # 変更箇所
+                    agent_id = pairs[iteration%len(pairs)]  # 変更箇所
                     self.env = self.env_list[iteration%len(self.issue)]
                     self.rollout_buffer = self.rollout_buffer_list[iteration%len(self.issue)]
-                    self.env.set_options({"opponent":self.agents[agent_id]})
+                    self.env.set_options({"opponent": [self.agents[agent_id[0]], self.agents[agent_id[1]]]}) # 変更箇所
+                    
                     self._last_obs = self.env.reset()
                 self.model.action_dim = int(self.env.action_space.n)
                 self.model.embedding_model.make_offer_embedding(save_path='./embeddings/openai/small/'+self.env.envs[0].unwrapped.domain+'.json')
