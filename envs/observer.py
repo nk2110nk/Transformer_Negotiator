@@ -58,11 +58,9 @@ class EmbeddedObserveHistory(AbstractObserve):
             embed_offer = self.embedding_model.offer_embedding(offer.values())
             # 埋め込みベクトル作成
             embed_offer = embed_offer + self.i_emb
-            if 'RLAgent' in neg:
-                self.observation[2*(state['step']-1),:,:] = embed_offer
-            else:
-                self.observation[2*state['step']-1,:,:] = embed_offer
+            self.observation[state['step'],:,:] = embed_offer # 変更箇所
         if self.padded == False:
-            self.observation[2*state['step']:,:,:] = 1e-6
+            # 一歩先の未来の状態を0埋め
+            self.observation[state['step'] + 1:,:,:] = 1e-6 # 変更箇所
             self.padded = True
         return self.observation
