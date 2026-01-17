@@ -619,8 +619,7 @@ class MySAOMechanism(SAOMechanism):
                     agent.on_round_end(state)
             self._add_to_history(state4history)
             # we only indicate a new step if no one is waiting
-            if self._last_checked_negotiator % len(self.negotiators) == 0:
-                self._current_state.step += 1
+            self._current_state.step += 1 # 変更箇所
             self._current_state.time = self.time
             self._current_state.relative_time = self.relative_time
 
