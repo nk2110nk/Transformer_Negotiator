@@ -627,6 +627,7 @@ class MySAOMechanism(SAOMechanism):
             self.on_negotiation_end()
         return self.state
 
+"""
     def plot(
         self,
         visible_negotiators: Union[Tuple[int, int], Tuple[str, str]] = (0, 1),
@@ -978,3 +979,4 @@ class MySAOMechanism(SAOMechanism):
                 fig_outcome.savefig(path)
             else:
                 fig_outcome.show()
+"""
