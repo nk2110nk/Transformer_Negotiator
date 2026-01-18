@@ -47,8 +47,9 @@ class EmbeddedObserveHistory(AbstractObserve):
         # 各論点における選択肢の埋め込みベクトルをロード
         self.embedding_model.make_offer_embedding(save_path='./embeddings/openai/'+scale+'/'+self.domain+'.json')
 
-        self.observation_space = gym.spaces.Box(low=-1, high=1, shape=((n_turn+1) * 2, len(self.i_emb), self.emb_dim), dtype=np.float32)
-        self.init_observation = np.zeros(((n_turn+1) * 2, len(self.i_emb), self.emb_dim), dtype=np.float32)
+        # 区別する必要ななくなったので*2は削除
+        self.observation_space = gym.spaces.Box(low=-1, high=1, shape=((n_turn+1), len(self.i_emb), self.emb_dim), dtype=np.float32) #　変更箇所
+        self.init_observation = np.zeros(((n_turn+1), len(self.i_emb), self.emb_dim), dtype=np.float32) # 変更箇所
         self.observation = self.init_observation
         self.padded = False
     
