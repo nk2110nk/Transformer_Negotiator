@@ -77,6 +77,7 @@ class NaiveEnv(gym.Env):
             self.agent_number = i
             opponent.append(self.get_opponent(add_noise=True))
 
+        # 先行・後攻想定は後で考える
         # セッションにエージェントの追加
         if self.is_first_turn:
             self.session.add(self.my_agent, ufun=self.my_util)
@@ -168,7 +169,7 @@ class NaiveEnv(gym.Env):
     def get_all_bids(self):
         session = MySAOMechanism(issues=self.issues, n_steps=80, avoid_ultimatum=False)
         agent = RLNegotiator()
-        session.add(agent, ufun=self.util1 if self.is_first else self.util2)
+        session.add(agent, ufun=self.my_util) # 変更箇所
         return agent.all_bids
 
 
@@ -228,7 +229,4 @@ class AOPEnv(NaiveEnv):
 
 
 # コメント
-# 3者に区別するため、self内部にはagent_numberを入れる(3者間の場合は0か1)
-# run_session_trained関数内で、対戦相手を順番に取得し、sessionに追加する際に順番を調整する
-# agreement時の効用計算も順番を調整する
-# 効用関数が対応しているかどうかしっかりと確認すること
+# 交渉の先行・後攻の処理を行う処理は後でやる
