@@ -77,13 +77,13 @@ class NaiveEnv(gym.Env):
             self.agent_number = i
             opponent.append(self.get_opponent(add_noise=True))
 
-        # 先行・後攻想定は後で考える
+        # 先攻・後攻想定は後で考える
         # セッションにエージェントの追加
         if self.is_first_turn:
             self.session.add(self.my_agent, ufun=self.my_util)
             self.session.add(opponent[0], ufun=self.opp_util1) # 変更箇所
             self.session.add(opponent[1], ufun=self.opp_util2) # 変更箇所
-            # 先行だったら自分から提案
+            # 先攻だったら自分から提案
             self.state = None
         else:
             self.session.add(opponent[0], ufun=self.opp_util1) # 変更箇所
