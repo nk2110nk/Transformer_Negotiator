@@ -49,11 +49,13 @@ class TimeBasedNegotiator(AspirationNegotiator):
         if offered_util is None:
             return ResponseType.REJECT_OFFER
         proposal = self.propose(state)
+        if proposal is None:
+            return ResponseType.REJECT_OFFER
         my_util = self._preferences(tuple(v for _, v in proposal.items()))
         if offered_util >= my_util and (self.reserved_value is None or offered_util > self.reserved_value):
             return ResponseType.ACCEPT_OFFER
-        # if self.reserved_value is not None and my_util < self.reserved_value:
-        #     return ResponseType.END_NEGOTIATION
+        if self.reserved_value is not None and my_util < self.reserved_value:
+            return ResponseType.END_NEGOTIATION
         return ResponseType.REJECT_OFFER
 
     def propose(self, state: MechanismState) -> Optional["Outcome"]:
@@ -121,13 +123,15 @@ class AverageTitForTatNegotiator(SAONegotiator):
         self.received_utilities.append(offered_util)
         n_sent = self.n_sent
         proposal = self.propose(state)
+        if proposal is None:
+            return ResponseType.REJECT_OFFER
         my_util = self._preferences(tuple(v for _, v in proposal.items()))
         self.my_last_proposal_utility = my_util
         self.n_sent = n_sent
         if offered_util >= my_util and (self.reserved_value is None or offered_util > self.reserved_value):
             return ResponseType.ACCEPT_OFFER
-        # if self.reserved_value is not None and my_util < self.reserved_value:
-        #     return ResponseType.END_NEGOTIATION
+        if self.reserved_value is not None and my_util < self.reserved_value:
+            return ResponseType.END_NEGOTIATION
         return ResponseType.REJECT_OFFER
 
     def _get_bid_index(self, ulevel: float) -> int:
@@ -376,6 +380,8 @@ class HardHeaded(SAONegotiator):
         self.bid_history.append(offer_tuple)
         self.opponent_model.update(offer, state.relative_time)
         proposal = self.propose(state)
+        if proposal is None:
+            return ResponseType.REJECT_OFFER
         my_util = self._preferences(tuple(v for _, v in proposal.items()))
         self.my_last_proposal_utility = my_util
 
