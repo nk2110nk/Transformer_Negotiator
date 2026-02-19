@@ -130,8 +130,8 @@ class NaiveEnv(gym.Env):
             opponent = AgentK(add_noise=add_noise)
         elif self.opponent[self.agent_number] == 'HardHeaded':
             opponent = HardHeaded(add_noise=add_noise)
-        elif self.opponent[self.agent_number] == 'CUHKAgent':
-            opponent = CUHKAgent(add_noise=add_noise)
+        #elif self.opponent[self.agent_number] == 'CUHKAgent':
+            #opponent = CUHKAgent(add_noise=add_noise)
         elif self.opponent[self.agent_number] == 'Atlas3':
             opponent = Atlas3(add_noise=add_noise)
         elif self.opponent[self.agent_number] == 'AgentGG':
