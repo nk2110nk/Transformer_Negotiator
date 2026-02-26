@@ -49,15 +49,10 @@ def run_session_trained(path, save_path, opponent, issue, domain, util1, util2, 
     opponent0 = get_opponent(opponent[0], add_noise=noise) # 変更箇所
     opponent1 = get_opponent(opponent[1], add_noise=noise) # 変更箇所
 
-# この部分の対戦相手の順番を調整
-    if is_first_turn:
-        session.add(my_agent, ufun=util1)
-        session.add(opponent0, ufun=util2) # 変更箇所
-        session.add(opponent1, ufun=util3) # 変更箇所
-    else:
-        session.add(opponent0, ufun=util2) # 変更箇所
-        session.add(my_agent, ufun=util1)
-        session.add(opponent1, ufun=util3) # 変更箇所
+# 本実験では先攻・後攻の想定を考慮する必要がない
+    session.add(my_agent, ufun=util1)
+    session.add(opponent0, ufun=util2) # 変更箇所
+    session.add(opponent1, ufun=util3) # 変更箇所
 
     values = []
     for _ in session:
@@ -129,6 +124,8 @@ def test_trained(config):
     results = [['my_util', 'opp_util1', 'opp_util2', 'social', 'nash', 'agreement', 'step', 'last_neg', 'value']] # 変更箇所
     scenario = load_genius_domain_from_folder('domain/' + issue)
     domain = scenario.issues
+    
+    # !!!この部分を変更する!!!
     util1 = scenario.ufuns[0].scale_max(1.0)
     util2 = scenario.ufuns[1].scale_max(1.0)
     util3 = scenario.ufuns[2].scale_max(1.0) # 変更箇所
