@@ -65,7 +65,6 @@ def run_session_trained(path, save_path, opponent, issue, domain, util1, util2, 
 
     if result['agreement'] is not None:
         agreement_offer = tuple(v for k, v in result['agreement'].items())
-        # この部分は先行想定ごとに処理を変更しなければならない
         my_util, opp_util1, opp_util2 = util1(agreement_offer), util2(agreement_offer), util3(agreement_offer) # 変更箇所
     else:
         my_util, opp_util1, opp_util2 = 0, 0, 0 # 変更箇所

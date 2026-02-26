@@ -26,6 +26,8 @@ class NaiveEnv(gym.Env):
         scenario = load_genius_domain_from_folder('domain/' + domain)
         self.domain = domain
         self.issues = scenario.issues
+        
+        # !!!この部分を変更する!!!
         self.util1 = scenario.ufuns[0].scale_max(1.0)
         self.util2 = scenario.ufuns[1].scale_max(1.0)
         self.util3 = scenario.ufuns[2].scale_max(1.0) # 変更箇所
@@ -33,18 +35,13 @@ class NaiveEnv(gym.Env):
         self.my_agent: Optional[RLNegotiator] = None
         self.session: Optional[MySAOMechanism] = None
 
-        # この部分の処理をなんとか考えること
         # 設定読み込み
         self.is_first = is_first
         self.is_first_turn = is_first
-        if self.is_first:
-            self.my_util = self.util1
-            self.opp_util1 = self.util2 # 変更箇所
-            self.opp_util2 = self.util3 # 変更箇所
-        else:
-            self.opp_util1 = self.util1 # 変更箇所
-            self.my_util = self.util2
-            self.opp_util2 = self.util3 # 変更箇所
+        
+        self.my_util = self.util1
+        self.opp_util1 = self.util2
+        self.opp_util2 = self.util3
 
         # 強化学習関連
         self.state = None
@@ -77,20 +74,12 @@ class NaiveEnv(gym.Env):
             self.agent_number = i
             opponent.append(self.get_opponent(add_noise=True))
 
-        # 先攻・後攻想定は後で考える
         # セッションにエージェントの追加
-        if self.is_first_turn:
-            self.session.add(self.my_agent, ufun=self.my_util)
-            self.session.add(opponent[0], ufun=self.opp_util1) # 変更箇所
-            self.session.add(opponent[1], ufun=self.opp_util2) # 変更箇所
-            # 先攻だったら自分から提案
-            self.state = None
-        else:
-            self.session.add(opponent[0], ufun=self.opp_util1) # 変更箇所
-            self.session.add(opponent[1], ufun=self.opp_util2) # 変更箇所
-            self.session.add(self.my_agent, ufun=self.my_util)
-            # 後攻だったら相手に1回提案させる
-            self.state = self.session.step().asdict()
+        self.session.add(self.my_agent, ufun=self.my_util)
+        self.session.add(opponent[0], ufun=self.opp_util1) # 変更箇所
+        self.session.add(opponent[1], ufun=self.opp_util2) # 変更箇所
+        # 自分から提案
+        self.state = None
 
         self.observer.reset()
         self.observation = self.observer(self.state)
@@ -144,8 +133,10 @@ class NaiveEnv(gym.Env):
         del self.issues
         del self.util1
         del self.util2
+        del self.util3 # 変更箇所
         del self.my_util
-        del self.opp_util
+        del self.opp_util1 # 変更箇所
+        del self.opp_util2 # 変更箇所
         del self.my_agent
         del self.all_bids
         del self.session
