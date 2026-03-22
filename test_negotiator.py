@@ -207,6 +207,7 @@ def main_trained():
     agent = [None, None] # 変更箇所
 
 # 変更箇所
+    # general専用
     for i in range(agents_sum):
         agent[0] = agents[i]
         for j in range(i, agents_sum):
@@ -218,6 +219,39 @@ def main_trained():
                         os.makedirs(save_path)
 
                     test_trained((issue, agent, det, noise, save_path, decoder_only, scale, decoder_num, is_first)) 
+    
+    # #expert用
+    # if isinstance(issues, str):
+    #     issues = [issues]
+    # if isinstance(agents, str):
+    #     agents = [agents]
+
+    # # ペア決定
+    # if len(agents) == 1:
+    #     pairs = [(agents[0], agents[0])]
+    # elif len(agents) == 2:
+    #     pairs = [(agents[0], agents[1])]
+    # else:
+    #     raise ValueError("agentsは1か2にして")
+
+    # for a0, a1 in pairs:
+    #     for issue in issues:
+    #         for det, noise in product([False], [False]):
+    #             save_path = (
+    #                 LOAD_PATH
+    #                 + ('/img' if PLOT else '/csv')
+    #                 + f'/{a0}-{a1}/{issue}/det={det}_noise={noise}/'
+    #             )
+
+    #             if not os.path.isdir(save_path):
+    #                 os.makedirs(save_path)
+
+    #             test_trained(
+    #                 (issue, [a0, a1], det, noise, save_path,
+    #                 decoder_only, scale, decoder_num, is_first)
+    #             )
+                
+                
 # --- IGNORE ---
 """
     for agent in agents:
