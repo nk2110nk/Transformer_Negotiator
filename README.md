@@ -34,7 +34,10 @@ python3 ./train.py -a Boulware Conceder Linear TitForTat1 TitForTat2 -i Laptop I
 - Example command for testing with a pretrained model:
 ```
 python3 ./test_negotiator.py -a Boulware Conceder Linear TitForTat1 TitForTat2 -i Laptop ItexvsCypress IS_BT_Acquisition Grocery thompson Car EnergySmall_A -m ./results/pretrained_model
+
 ```
+
+python3 ./test_negotiator.py -a Boulware Conceder Linear Atlas3 -i Laptop ItexvsCypress IS_BT_Acquisition Grocery thompson Car EnergySmall_A -m ./results/Laptop-ItexvsCypress-IS_BT_Acquisition-Grocery-thompson-Car-EnergySmall_A_Boulware-Conceder-Linear-Atlas3/20260321-184856-TA
 
 - `-a` and `-i` arguments specify agents and issues for training or testing
 
